@@ -1,0 +1,48 @@
+# ============================================================
+# LAYER 1: SLOPSQUATTING DETECTION - GitHub Actions Workflow
+# ============================================================
+# What this is: An automated script that runs every time a
+# developer pushes code. It checks every Python package in
+# the project BEFORE anything gets installed.
+#
+# Think of it as a bouncer at the door checking IDs.
+# ============================================================
+
+name: Slopsquatting Package Check
+
+# TRIGGER: Run this check whenever code is pushed, or a pull
+# request is opened. This means no suspicious package can
+# sneak in without being checked first.
+on:
+  push:
+    branches: ["*"]
+  pull_request:
+    branches: ["*"]
+
+jobs:
+  check-packages:
+    runs-on: ubuntu-latest  # Run on a clean Linux machine in the cloud
+
+    steps:
+
+      # STEP 1: Get the code from the repository so we can read it
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # STEP 2: Set up Python so we can run our detection script
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      # STEP 3: Install the libraries our detection script needs
+      - name: Install checker dependencies
+        run: pip install requests python-dateutil
+
+      # STEP 4: THE ACTUAL DETECTION - run our custom checker script
+      - name: Run slopsquatting detection
+        run: python slopsquatting_check.py
+
+      # STEP 5: If the script found suspicious packages, fail the build.
+      # This means the code CANNOT be merged until the issue is resolved.
+      # The developer is forced to investigate before anything goes further.
